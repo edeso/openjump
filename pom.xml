@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.openjump</groupId>
     <artifactId>OpenJUMP</artifactId>
-    <version>${version.string}</version>
+    <version>2.0</version>
     <scm>
         <connection>scm:git:https://github.com/openjump-gis/openjump.git</connection>
         <developerConnection>scm:git:https://github.com/openjump-gis/openjump.git</developerConnection>
@@ -12,10 +12,14 @@
         <url>https://github.com/openjump-gis/openjump/tree/main</url>
     </scm>
     <properties>
-        <version.number>0.0.0</version.number>
+        <version.number>${build.datestamp}</version.number>
         <version.release>mvn build</version.release>
         <version.revision>${git.total.commit.count}(${git.commit.id.abbrev})</version.revision>
         <version.buildDateLong>${build.datelong}</version.buildDateLong>
+        <version.string>${git.branch}-SNAPSHOT</version.string>
+        <!-- 
+        <build.name>${project.build.finalName}</build.name>
+        -->
         <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
         <project.binaries>**/*.command,**/*.sh,**/*.bat,**/*.exe,**/MacOS/OpenJUMP</project.binaries>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -122,7 +126,9 @@
         <profile>
             <id>release</id>
             <properties>
-              <!-- should be be set on maven run with -D version.number=X.X.X -->
+              <!-- can be be overridden on maven run with e.g.
+                   -D version.number=X.X.X -D version.release=alpha -->
+              <version.number>${project.version}</version.number>
               <version.release>release</version.release>
               <recompress.jars>false</recompress.jars>
               <!-- props used by jar and assembly naming -->
@@ -594,7 +600,7 @@
         </profile>
     </profiles>
     <build>
-        <finalName>${project.artifactId}-${version.number}-${version.revision}</finalName>
+        <finalName>${project.artifactId}-${version.string}</finalName>
         <sourceDirectory>src/</sourceDirectory>
         <outputDirectory>target/classes</outputDirectory>
         <resources>
@@ -638,6 +644,7 @@
             </resource>
         </resources>
         <plugins>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
@@ -719,7 +726,7 @@
                   <goals>
                     <goal>revision</goal>
                   </goals>
-                  <phase>initialize</phase>
+                  <phase>validate</phase>
                 </execution>
               </executions>
               <configuration>
@@ -736,17 +743,71 @@
             </plugin>
 
             <plugin>
+              <groupId>com.github.ekryd.echo-maven-plugin</groupId>
+              <artifactId>echo-maven-plugin</artifactId>
+              <version>1.3.2</version>
+              <executions>
+                <execution>
+                  <id>echo-version-info</id>
+                  <phase>initialize</phase>
+                  <goals>
+                    <goal>echo</goal>
+                  </goals>
+                  <configuration>
+                    <message>
+                    Building
+                    ${project.artifactId}-${version.string} ${version.release}
+                    Finalname
+                    ${project.build.finalName}
+                    </message>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+
+            <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-jar-plugin</artifactId>
               <version>3.2.0</version>
+              <!--
               <configuration>
                 <finalName>${build.name}</finalName>
               </configuration>
+              -->
               <executions>
                 <execution>
-                  <!-- disable unused default jar -->
                   <id>default-jar</id>
+                  <phase>install</phase>
+                </execution>
+              </executions>
+            </plugin>
+
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-install-plugin</artifactId>
+              <version>3.0.0-M1</version>
+              <executions>
+                <execution>
+                  <id>default-install</id>
                   <phase>none</phase>
+                  <goals>
+                    <goal>install-file</goal>
+                  </goals>
+                </execution>
+                <execution>
+                  <id>custom-install-jar</id>
+                  <goals>
+                    <goal>install-file</goal>
+                  </goals>
+                  <phase>install</phase>
+                  <configuration>
+                    <!-- > file>${project.build.directory}/${project.build.finalName}.jar</file -->
+                    <packaging>jar</packaging>
+                    <version>${version.string}</version>
+                    <generatePom>true</generatePom>
+                    <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                    <localRepositoryPath>${project.build.directory}/repo/</localRepositoryPath>
+                  </configuration>
                 </execution>
               </executions>
             </plugin>
