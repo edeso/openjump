@@ -120,6 +120,22 @@
                   </execution>
                 </executions>
               </plugin>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <id>custom-install-jar</id>
+                    <goals>
+                      <goal>install-file</goal>
+                    </goals>
+                    <phase>install</phase>
+                    <configuration>
+                      <localRepositoryPath>${project.build.directory}/repo/</localRepositoryPath>
+                    </configuration>
+                  </execution>
+                </executions>
+              </plugin>
             </plugins>
           </build>
         </profile>
@@ -806,7 +822,9 @@
                     <version>${version.string}</version>
                     <generatePom>true</generatePom>
                     <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                    <!-- 
                     <localRepositoryPath>${project.build.directory}/repo/</localRepositoryPath>
+                    -->
                   </configuration>
                 </execution>
               </executions>
