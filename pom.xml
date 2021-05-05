@@ -4,6 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.openjump</groupId>
     <artifactId>OpenJUMP</artifactId>
+    <!-- update before every release accordingly -->
     <version>2.0</version>
     <scm>
         <connection>scm:git:https://github.com/openjump-gis/openjump.git</connection>
@@ -12,14 +13,13 @@
         <url>https://github.com/openjump-gis/openjump/tree/main</url>
     </scm>
     <properties>
+        <!-- setup some defaults used or overridden later -->
         <version.number>${build.datestamp}</version.number>
         <version.release>mvn build</version.release>
         <version.revision>${git.total.commit.count}(${git.commit.id.abbrev})</version.revision>
         <version.buildDateLong>${build.datelong}</version.buildDateLong>
-        <version.string>${git.branch}-SNAPSHOT</version.string>
-        <!-- 
-        <build.name>${project.build.finalName}</build.name>
-        -->
+        <version.string>${git.branch}(${git.commit.id.abbrev})</version.string>
+
         <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
         <project.binaries>**/*.command,**/*.sh,**/*.bat,**/*.exe,**/MacOS/OpenJUMP</project.binaries>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -126,13 +126,7 @@
                 <executions>
                   <execution>
                     <id>custom-install-jar</id>
-                    <goals>
-                      <goal>install-file</goal>
-                    </goals>
-                    <phase>install</phase>
-                    <configuration>
-                      <localRepositoryPath>${project.build.directory}/repo/</localRepositoryPath>
-                    </configuration>
+                    <phase>none</phase>
                   </execution>
                 </executions>
               </plugin>
@@ -142,11 +136,12 @@
         <profile>
             <id>release</id>
             <properties>
-              <!-- can be be overridden on maven run with e.g.
+              <!-- set <version/> property above accordingly, but
+                   can be be overridden on maven run with e.g.
                    -D version.number=X.X.X -D version.release=alpha -->
               <version.number>${project.version}</version.number>
               <version.release>release</version.release>
-              <recompress.jars>false</recompress.jars>
+              <recompress.jars>true</recompress.jars>
               <!-- props used by jar and assembly naming -->
               <version.string>${version.number}-r${version.revision}</version.string>
               <build.name>${project.artifactId}-${version.string}</build.name>
@@ -213,7 +208,32 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
+                      </plugin>
+                      <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-install-plugin</artifactId>
+                        <executions>
+                          <execution>
+                            <id>custom-install-jar</id>
+                            <phase>none</phase>
+                          </execution>
+                        </executions>
+                      </plugin>
+                      <!-- properly name release deployments -->
+                      <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <executions>
+                          <execution>
+                            <id>custom-deploy</id>
+                            <configuration>
+                              <file>${project.build.directory}/${build.name}.jar</file>
+                              <version>${version.number}</version>
+                              <classifier>r${version.revision}</classifier>
+                            </configuration>
+                          </execution>
+                        </executions>
+                      </plugin>
                 </plugins>
             </build>
         </profile>
@@ -770,26 +790,20 @@
                     <goal>echo</goal>
                   </goals>
                   <configuration>
-                    <message>
-                    Building
-                    ${project.artifactId}-${version.string} ${version.release}
-                    Finalname
-                    ${project.build.finalName}
+                    <message>Building
+                      ${project.build.finalName}
                     </message>
                   </configuration>
                 </execution>
               </executions>
             </plugin>
 
+            <!-- default-jar only needed for maven repo deployment,
+                 so postpone creation to install cycle  -->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-jar-plugin</artifactId>
               <version>3.2.0</version>
-              <!--
-              <configuration>
-                <finalName>${build.name}</finalName>
-              </configuration>
-              -->
               <executions>
                 <execution>
                   <id>default-jar</id>
@@ -798,6 +812,10 @@
               </executions>
             </plugin>
 
+            <!-- installing artifact to local repo (usually "~/.m2")
+                 is mainly done to enable 
+                   https://jitpack.io/#openjump-gis/openjump
+                 repo builds -->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-install-plugin</artifactId>
@@ -817,7 +835,6 @@
                   </goals>
                   <phase>install</phase>
                   <configuration>
-                    <!-- > file>${project.build.directory}/${project.build.finalName}.jar</file -->
                     <packaging>jar</packaging>
                     <version>${version.string}</version>
                     <generatePom>true</generatePom>
@@ -825,6 +842,36 @@
                     <!-- 
                     <localRepositoryPath>${project.build.directory}/repo/</localRepositoryPath>
                     -->
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+
+            <!-- this deploys the jar to a repo-url given
+                 used in snapshot/release builds to update
+                   oj.soldin.de repo -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-deploy-plugin</artifactId>
+              <version>3.0.0-M1</version>
+              <executions>
+                <execution>
+                  <id>default-deploy</id>
+                  <phase>none</phase>
+                </execution>
+                <execution>
+                  <id>custom-deploy</id>
+                  <phase>deploy</phase>
+                  <goals>
+                    <goal>deploy-file</goal>
+                  </goals>
+                  <configuration>
+                    <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                    <!-- needs to be set via -Durl=file://C:\m2-repo --> <!--
+                    <url>file://${project.build.directory}/build-repo/</url>
+                    -->
+                    <version>${project.version}-SNAPSHOT</version>
+                    <classifier>${version.string}</classifier>
                   </configuration>
                 </execution>
               </executions>
