@@ -896,10 +896,17 @@
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
         <!-- Used for buoy and JAI core, codec and imageio -->
+        <!--
         <repository>
             <id>openjump</id>
             <name>OpenJUMP Maven 2 Repository</name>
             <url>http://jump-pilot.sourceforge.net/repository/</url>
+        </repository>
+        -->
+        <repository>
+            <id>ojrepo</id>
+            <name>OpenJUMP Snapshot Repository</name>
+            <url>https://ojrepo.soldin.de/</url>
         </repository>
         <repository>
             <id>mvn-adamgent</id>
