@@ -122,7 +122,7 @@ public class OptionSpec {
     return names;
   }
 
-  boolean matches(String name) {
+  public boolean matches(String name) {
     return names.contains(name.toLowerCase());
   }
 

@@ -132,6 +132,8 @@ public class JUMPWorkbench {
   public static final String PROPERTIES_OPTION = "properties";
   public static final String DEFAULT_PLUGINS = "default-plugins";
   public static final String PLUG_IN_DIRECTORY_OPTION = "plug-in-directory";
+  public static final String CLASSES_DIRECTORY_OPTION = "classes-directory";
+  public static final String JARS_DIRECTORY_OPTION = "jars-directory";
   public static final String I18N_FILE = "i18n";
   public static final String INITIAL_PROJECT_FILE = "project";
   public static final String I18NPREFIX = JUMPWorkbench.class.getPackage().getName()+".";
@@ -244,10 +246,11 @@ public class JUMPWorkbench {
     File extensionsDirectory = null;
     List<File> moreDirs = new ArrayList<>();
     if (commandLine.hasOption(PLUG_IN_DIRECTORY_OPTION)) {
-      // we support multiple -plug-in-directory definitions, where the first is set default
+      // we support multiple -plug-in-directory definitions, where the first is set as default (for mainly for )
       // and all others and contained jar/zip files get added to classpath below
       // this mainly helps when run during development where lib/plus/ & lib/ext/ are different folders
       Iterator<String> paths = commandLine.getAllArguments(PLUG_IN_DIRECTORY_OPTION);
+
       while (paths.hasNext()) {
         String path = paths.next();
         if (extensionsDirectory == null) {
@@ -266,6 +269,7 @@ public class JUMPWorkbench {
         moreDirs.add(dir);
       }
     } else {
+      // add default "lib/ext/"
       extensionsDirectory = new File("lib/ext");
     }
 
@@ -299,11 +303,26 @@ public class JUMPWorkbench {
     }
 
     // create plugin manager
-    plugInManager = new PlugInManager(context, extensionsDirectory, monitor);
+    plugInManager = new PlugInManager(context, monitor);
     // add secondary extension folders (mainly for dev where we have lib/ext/ & lib/plus/)
-    for (File dir : moreDirs) {
-      plugInManager.addExtensionDir(dir);
+//    for (File dir : moreDirs) {
+//      plugInManager.addExtensionDir(dir);
+//    }
+    Iterator<OptionSpec> options = commandLine.getOptions();
+    while (options.hasNext()) {
+      OptionSpec option = options.next();
+      if (option.matches(PLUG_IN_DIRECTORY_OPTION)) {
+        
+      }
+      else if (option.matches(CLASSES_DIRECTORY_OPTION)) {
+        
+      }
+      else if (option.matches(JARS_DIRECTORY_OPTION)) {
+        
+      }
     }
+    
+
     // debugging output of all urls in our classloader
     Logger.debug("Classpath -> "+Arrays.toString(plugInManager.getPlugInClassLoader().getURLs()));
 
@@ -632,11 +651,15 @@ public class JUMPWorkbench {
         "property file (default OpenJUMP extensions and plugins)"));
     commandLine.addOptionSpec(new OptionSpec(PLUG_IN_DIRECTORY_OPTION, 1,
         "plugin folder location, default './lib/ext'"));
+    commandLine.addOptionSpec(new OptionSpec(CLASSES_DIRECTORY_OPTION, 1,
+        "a classes folder location, to be used during development"));
+    commandLine.addOptionSpec(new OptionSpec(JARS_DIRECTORY_OPTION, 1,
+        "a jars folder location, to be used during development"));
     commandLine
         .addOptionSpec(new OptionSpec(
             I18N_FILE,
             1,
-            "switch language and number formatting by overriding system's default locale setting, e.g en_US"));
+            "switch language and number formatting by overriding system's default locale setting, e.g. en_US"));
     // [UT] 17.08.2005
     commandLine.addOptionSpec(new OptionSpec(INITIAL_PROJECT_FILE, 1,
         "deprecated, simply add files as parameter"));

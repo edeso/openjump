@@ -75,8 +75,7 @@ public class PlugInManager {
      * @param plugInDirectory
      *            null to leave unspecified
      */
-    public PlugInManager(WorkbenchContext context, File plugInDirectory,
-            TaskMonitor monitor) throws Exception {
+    public PlugInManager(WorkbenchContext context, TaskMonitor monitor) throws Exception {
         this.monitor = monitor;
 
 //          class ExtendedURLClassLoader extends URLClassLoader{
@@ -138,10 +137,10 @@ public class PlugInManager {
           throw je;
         }
 
-        // add plugin folder and recursively all jar/zip files in it to classpath
-        if ( plugInDirectory instanceof File ) {
-          addExtensionDir(plugInDirectory);
-        }
+//        // add plugin folder and recursively all jar/zip files in it to classpath
+//        if ( plugInDirectory instanceof File ) {
+//          addExtensionDir(plugInDirectory);
+//        }
 
         I18N.setClassLoader(classLoader);
         this.context = context;

@@ -96,6 +96,10 @@ public class CommandLine {
     return spec != null ? spec.getAllArguments() : Collections.emptyIterator();
   }
 
+  public Iterator<OptionSpec> getOptions() {
+    return optSpecs.iterator();
+  }
+
   public Iterator<String> getParams() {
     return parVec.iterator();
   }
@@ -108,11 +112,11 @@ public class CommandLine {
   public String printDoc() {
     return printDoc(null);
   }
-  
+
   public String printDoc(Exception e) {
 
     StringBuilder out = new StringBuilder();
-        
+
     if (e != null)
       out.append("Error:\n  ").append(e.getMessage()).append("\n\n");
 
@@ -151,7 +155,6 @@ public class CommandLine {
         throw new ParseException(I18N.getInstance().get(getClass().getName()
             + ".unknown-option-or-file-not-found-{0}", args[i]));
     }
-
   }
 
   // create list containing only the parameters up to the next valid parameter
